@@ -5,7 +5,7 @@
 <!--
         <checksum>link</checksum>
 -->
-        <datadir zip="true">https://github.com/merlink01/KodiPlugins/tree/master/releases</datadir>
+        <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
 <!--
         <hashes>true</hashes>
 -->
