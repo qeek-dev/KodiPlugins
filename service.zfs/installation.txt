@@ -1,6 +1,0 @@
-ZFS on Linux:
-
-echo 'ACTION=="add", KERNEL=="zfs", MODE="0660", GROUP="zfs"' >> /etc/udev/rules.d/91-zfs-permissions.rules
-groupadd zfs
-gpasswd -a kodi zfs
-
