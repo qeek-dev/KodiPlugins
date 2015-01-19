@@ -1,1 +1,3 @@
 0.0.1 Initial Release
+- Please read "Readme.txt" in case of permission problems
+
