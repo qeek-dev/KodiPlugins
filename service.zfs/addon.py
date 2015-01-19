@@ -2,11 +2,13 @@ import time
 import xbmc
 import sys
 import subprocess
+import xbmcaddon
+__addon__ = xbmcaddon.Addon()
 
-
-sleeptime = 100
-timeout = 20
 header = "ZFS Check"
+
+timeout = int(__addon__.getSetting("zfs.timeout"))*1000
+sleeptime = int(__addon__.getSetting("zfs.sleeptime"))
 
 
 def run():
@@ -27,7 +29,7 @@ if __name__ == '__main__':
         xbmc.executebuiltin("Notification (%s ,%s, %d)"%(header,'Error: ZFS not installed!',timeout))
         sys.exit(0)
 
-    info = run().replace('\\n','')    
+    info = run().replace('\\n','')
     xbmc.executebuiltin("Notification (%s ,%s, %d)"%(header,info,timeout))
 
     while True:
@@ -37,5 +39,3 @@ if __name__ == '__main__':
         if not xbmc.Player().isPlaying():
             info = run()
             xbmc.executebuiltin("Notification (%s ,%s, %d)"%(header,info,timeout))
-
-

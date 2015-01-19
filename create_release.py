@@ -8,6 +8,8 @@ def zipdir(path, zip):
             zip.write(os.path.join(root, file))
 
 if __name__ == '__main__':
-    zipf = zipfile.ZipFile('./releases/service.zfs_0.0.1.zip', 'w')
-    zipdir('./service.zfs', zipf)
-    zipf.close()
+    plugins = ['service.zfs']
+    for plugin in plugins:
+        zipf = zipfile.ZipFile('./releases/%s/service.zfs_0.0.2.zip'%plugin, 'w')
+        zipdir('./%s'%plugin, zipf)
+        zipf.close()
