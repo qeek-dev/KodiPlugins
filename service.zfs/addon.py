@@ -33,6 +33,9 @@ if __name__ == '__main__':
     xbmc.executebuiltin("Notification (%s ,%s, %d)"%(header,info,timeout))
 
     while True:
+        timeout = int(__addon__.getSetting("zfs.timeout"))*1000
+        sleeptime = int(__addon__.getSetting("zfs.sleeptime"))
+
         if monitor.waitForAbort(sleeptime):
             break
 
