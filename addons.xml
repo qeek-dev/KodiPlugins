@@ -13,7 +13,8 @@
         <license>GNU General Public License, v2</license>
         <language></language>
         <source>https://github.com/merlink01/KodiPlugins/tree/master/service.zfs</source>
-        <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
+        <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases/service.zfs</datadir>
+
     </extension>
 </addon>
 </addons>
