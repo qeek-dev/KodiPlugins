@@ -10,6 +10,6 @@ def zipdir(path, zip):
 if __name__ == '__main__':
     plugins = ['service.zfs']
     for plugin in plugins:
-        zipf = zipfile.ZipFile('./releases/%s/service.zfs_0.0.2.zip'%plugin, 'w')
+        zipf = zipfile.ZipFile('./releases/%s/service.zfs-0.0.2.zip'%plugin, 'w')
         zipdir('./%s'%plugin, zipf)
         zipf.close()
