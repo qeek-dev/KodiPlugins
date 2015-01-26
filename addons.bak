@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addons>
+<addon id="service.zfs" name="ZFS Checker" version="0.0.2" provider-name="merlink">
+    <requires>
+        <import addon="xbmc.python" version="2.14.0"/>
+    </requires>
+    <extension point="xbmc.service" library="addon.py" start="login"></extension>
+
+    <extension point="xbmc.addon.metadata">
+        <platform>all</platform>
+        <summary lang="en">Check ZFS Status</summary>
+        <description lang="en">Checks the healths of zfs regularly</description>
+        <license>GNU General Public License, v2</license>
+        <language></language>
+        <source>https://github.com/merlink01/KodiPlugins/tree/master/service.zfs</source>
+        <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
+
+    </extension>
+</addon>
+</addons>

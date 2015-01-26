@@ -39,6 +39,9 @@ if __name__ == '__main__':
         if monitor.waitForAbort(sleeptime):
             break
 
-        if not xbmc.Player().isPlaying():
-            info = run()
-            xbmc.executebuiltin("Notification (%s ,%s, %d)"%(header,info,timeout))
+        while xbmc.Player().isPlaying():
+            monitor.waitForAbort(1):
+
+
+        info = run()
+        xbmc.executebuiltin("Notification (%s ,%s, %d)"%(header,info,timeout))

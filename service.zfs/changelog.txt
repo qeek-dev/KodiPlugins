@@ -5,3 +5,4 @@
 - Message Timeout
 - Sleeptime
 
+0.0.3 Messagebox waits now for Player to stop
