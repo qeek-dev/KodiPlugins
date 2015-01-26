@@ -70,7 +70,7 @@ class XML:
         xml_file.write(self.get_xmlstring().encode(encoding))
         xml_file.close()
 
-    def write_xml_with_dom(self, path, indent="  ",addindent="  ", newl="\n",encoding='utf8'):
+    def write_xml_with_dom(self, path, indent="  ",addindent="  ", newl="",encoding='utf8'):
         xml_file = open(path, 'wb')
         self.root.writexml(xml_file, indent=indent,addindent=addindent, newl=newl, encoding=encoding)
         xml_file.close()
