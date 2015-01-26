@@ -6,3 +6,7 @@
 - Sleeptime
 
 0.0.3 Messagebox waits now for Player to stop
+
+...
+
+0.0.5 Debugging and start Message after Player shutdown

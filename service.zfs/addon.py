@@ -40,7 +40,7 @@ if __name__ == '__main__':
             break
 
         while xbmc.Player().isPlaying():
-            monitor.waitForAbort(1):
+            monitor.waitForAbort(1)
 
 
         info = run()
