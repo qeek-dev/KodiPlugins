@@ -65,14 +65,14 @@ class XML:
         else:
             return False
 
-    def write_xml(self, path, encoding='utf8'):
+    def write_xml(self, path):
         xml_file = open(path, 'wb')
         xml_file.write(self.get_xmlstring().encode(encoding))
         xml_file.close()
 
-    def write_xml_with_dom(self, path, indent="  ",addindent="  ", newl="",encoding='utf8'):
+    def write_xml_with_dom(self, path, indent="  ",addindent="  ", newl=""):
         xml_file = open(path, 'wb')
-        self.root.writexml(xml_file, indent=indent,addindent=addindent, newl=newl, encoding=encoding)
+        self.root.writexml(xml_file, indent=indent,addindent=addindent, newl=newl)
         xml_file.close()
 
 def count_version_up(verion):
