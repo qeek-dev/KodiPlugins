@@ -99,6 +99,10 @@ if int(mintime) >= int(maxtime):
     __addon__.setSetting(id="mintime",value='1')
     __addon__.setSetting(id="maxtime",value='30')
 
+
+# Wrong Station in Settings
+mvg_obj = MVG()
+
 if station == '':
     # No usable Station found
     while 1:
