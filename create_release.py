@@ -89,9 +89,13 @@ def count_version_up(verion):
 if __name__ == '__main__':
 
 
-    plugin = 'service.zfs'
+    plugin = 'script.mvg.departures'
 
     sourcefolder = './%s'%plugin
+    try:
+        os.makedirs(sourcefolder)
+    except:
+        pass
     addon_xml_file = os.path.join(sourcefolder,'addon.xml')
     print 'Updating: %s'%addon_xml_file
     xml = XML(path=addon_xml_file)
@@ -105,7 +109,6 @@ if __name__ == '__main__':
     print version,'-->',newversion
     node.setAttribute('version',newversion)
 
-    print node.getAttribute('version')
     xml.write_xml_with_dom(addon_xml_file)
 
 
@@ -122,6 +125,10 @@ if __name__ == '__main__':
                 addon.setAttribute('version',newversion)
 
     xml.write_xml_with_dom(list_xml_file)
+    try:
+        os.makedirs('./releases/%s'%plugin)
+    except:
+        pass
     zippath = './releases/%s/service.zfs-%s.zip'%(plugin,newversion)
     print 'Creating: %s'%zippath
     zipf = zipfile.ZipFile(zippath, 'w')
