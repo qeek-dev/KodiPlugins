@@ -1,4 +1,5 @@
 <?xml version="1.0" ?><addons>
+
     <addon id="service.zfs" name="ZFS Checker" provider-name="merlink" version="0.0.5">
         <requires>
             <import addon="xbmc.python" version="2.14.0"/>
@@ -14,6 +15,24 @@
             <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
         </extension>
     </addon>
+
+    <addon id="script.zfs.checker" name="ZFS Checker2" provider-name="merlink" version="0.0.1">
+        <requires>
+            <import addon="xbmc.python" version="2.14.0"/>
+        </requires>
+        <extension library="service.py" point="xbmc.service"/>
+        <extension library="addon.py" point="xbmc.python.script"/>
+        <extension point="xbmc.addon.metadata">
+            <platform>all</platform>
+            <summary lang="en">Check ZFS Status</summary>
+            <description lang="en">Checks the healths of zfs regularly</description>
+            <license>GNU General Public License, v2</license>
+            <language/>
+            <source>https://github.com/merlink01/KodiPlugins/tree/master/script.zfs.checker</source>
+            <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
+        </extension>
+    </addon>
+
     <addon id="script.mvg.departures" name="MVG Departure Checker" provider-name="merlink" version="0.0.4">
         <requires>
             <import addon="xbmc.python" version="2.14.0"/>
@@ -29,4 +48,5 @@
             <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
         </extension>
     </addon>
+
 </addons>

@@ -89,7 +89,7 @@ def count_version_up(verion):
 if __name__ == '__main__':
 
 
-    plugin = 'script.mvg.departures'
+    plugin = 'script.zfs.checker'
 
     sourcefolder = './%s'%plugin
     try:
