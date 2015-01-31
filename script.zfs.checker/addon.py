@@ -15,7 +15,13 @@ def run():
                            stderr=subprocess.PIPE)
     out, err = process.communicate()
     errcode = process.returncode
-    return str(out)
+
+    if errcode != 0:
+        return """An Error occured (Code %s):\n\n%s\n\n1.\
+         Please check if ZFS is installed correctly\n\
+         2. Check the command "zpool status" from current user"""%(errcode,err)
+
+    return out
 
 
 def text_viewer(title, text):

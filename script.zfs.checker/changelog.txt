@@ -1,12 +1,16 @@
-0.0.1 Initial Release
-- Please read "Readme.txt" in case of permission problems
+0.0.4
+-Created Errormessage in the Script Program if something went wrong
 
-0.0.2 Added Timeout Settings
-- Message Timeout
-- Sleeptime
+0.0.3
+-Bugfixes
 
-0.0.3 Messagebox waits now for Player to stop
+0.0.2
+-Bugfixes
 
-...
+0.0.1
+- Added Script functionality
+- This Program works now as Service and Script
 
-0.0.5 Debugging and start Message after Player shutdown
+0.0.0
+-Complete rebuild and change
+
