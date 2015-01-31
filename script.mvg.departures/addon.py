@@ -38,6 +38,10 @@ class MVG:
         string = urllib2.quote(stationname.encode('latin1'))
         return string
 
+    def get_url(self, stationname):
+        enc_station = self.encode_station_name(station)
+        return 'http://www.mvg-live.de/ims/dfiStaticAnzeige.svc?haltestelle=%s'%enc_station
+
     def get_departures(self, station, mintime=1,maxtime = 20):
         log('Station: %s'%station)
         log('Mintime: %s'%mintime)
@@ -64,7 +68,7 @@ class MVG:
         d = REGEXP.findall(s)
         outlist = []
         if len(d) == 0:
-            return None
+            return []
         else:
             for (line, dest, t) in d:
                 if int(t) <= maxtime and int(t) >= mintime:
@@ -128,6 +132,9 @@ if station == '':
 # Show Depart Infos
 log('Showing Output: %s'%station)
 data = mvg_obj.get_departures(station,mintime,maxtime)
+if len(data) == 0:
+    text_viewer(station,'No Info\n\n\nIf nothing happens you could try:\n\n1. check the URL:\n%s\n\n2. Check the Stationname: %s'%(mvg_obj.get_url(station),station))
+    exit(0)
 info = ''
 for line in data:
     info += line + '\n'

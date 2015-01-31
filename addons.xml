@@ -14,7 +14,7 @@
             <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
         </extension>
     </addon>
-    <addon id="script.mvg.departures" name="MVG Departure Checker" provider-name="merlink" version="0.0.3">
+    <addon id="script.mvg.departures" name="MVG Departure Checker" provider-name="merlink" version="0.0.4">
         <requires>
             <import addon="xbmc.python" version="2.14.0"/>
         </requires>
