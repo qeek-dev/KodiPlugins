@@ -1,6 +1,5 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="repository.merlink.kodi-addons" name="Merlinks Unofficial Add-on Repository" version="0.0.1" provider-name="merlink">
-    <extension point="xbmc.addon.repository" name="Merlinks Unofficial Add-on Repository">
+<?xml version="1.0" ?><addon id="repository.merlink.kodi-addons" name="Merlinks Unofficial Add-on Repository" provider-name="merlink" version="0.0.2">
+    <extension name="Merlinks Unofficial Add-on Repository" point="xbmc.addon.repository">
         <info compressed="false">https://github.com/merlink01/KodiPlugins/raw/master/addons.xml</info>
 <!--
         <checksum>link</checksum>

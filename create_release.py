@@ -89,7 +89,41 @@ def count_version_up(verion):
 if __name__ == '__main__':
 
 
-    plugin = 'script.zfs.checker'
+    itemlist = os.listdir('./')
+
+    pluginlist = []
+    for item in itemlist:
+        if os.path.isdir(item):
+            if item.startswith('plugin.'):
+                pluginlist.append(item)
+            if item.startswith('skin.'):
+                pluginlist.append(item)
+            if item.startswith('script.'):
+                pluginlist.append(item)
+            if item.startswith('service.'):
+                pluginlist.append(item)
+            if item.startswith('repository.'):
+                pluginlist.append(item)
+            if item.startswith('metadata.'):
+                pluginlist.append(item)
+    pluginlist.sort()
+
+    print 'Please Choose Plugin to release\n'
+    counter = 0
+    pluginlib = {}
+    for plugin in pluginlist:
+        counter += 1
+        print "%s: %s"%(counter, plugin)
+        pluginlib[str(counter)] = plugin
+
+    num = raw_input("\nEnter Number: ")
+    if not num in pluginlib:
+        print '\nWrong entry: %s'%num
+        exit(0)
+
+    print 'Release: %s\n'%pluginlib[num]
+    plugin = pluginlib[num]
+
 
     sourcefolder = './%s'%plugin
     try:
@@ -110,8 +144,6 @@ if __name__ == '__main__':
     node.setAttribute('version',newversion)
 
     xml.write_xml_with_dom(addon_xml_file)
-
-
 
     list_xml_file = 'addons.xml'
     print 'Updating: %s'%list_xml_file
