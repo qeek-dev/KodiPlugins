@@ -32,7 +32,7 @@
         </extension>
     </addon>
 
-    <addon id="repository.merlink.kodi-addons" name="Merlinks Unofficial Add-on Repository" provider-name="merlink" version="0.0.2">
+    <addon id="repository.merlink.kodi-addons" name="Merlinks Unofficial Add-on Repository" provider-name="merlink" version="0.0.3">
         <extension name="Merlinks Unofficial Add-on Repository" point="xbmc.addon.repository"/>
         <extension point="xbmc.addon.metadata">
             <platform>all</platform>
