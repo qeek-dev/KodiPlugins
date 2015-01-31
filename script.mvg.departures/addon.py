@@ -99,13 +99,6 @@ if int(mintime) >= int(maxtime):
     __addon__.setSetting(id="mintime",value='1')
     __addon__.setSetting(id="maxtime",value='30')
 
-
-# Wrong Station in Settings
-mvg_obj = MVG()
-data = mvg_obj.get_departures(station)
-if not data:
-    station = ''
-
 if station == '':
     # No usable Station found
     while 1:
@@ -117,7 +110,7 @@ if station == '':
             log('Trying: %s'%station)
 
             data = mvg_obj.get_departures(station)
-            if not data:
+            if data == []:
                 log('Got No Data: %s'%station)
                 continue
             else:
