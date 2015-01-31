@@ -70,9 +70,9 @@ class XML:
         xml_file.write(self.get_xmlstring().encode(encoding))
         xml_file.close()
 
-    def write_xml_with_dom(self, path, indent="  ",addindent="  ", newl=""):
+    def write_xml_with_dom(self, path):
         xml_file = open(path, 'wb')
-        self.root.writexml(xml_file, indent=indent,addindent=addindent, newl=newl)
+        self.root.writexml(xml_file)
         xml_file.close()
 
 def count_version_up(verion):
@@ -129,7 +129,7 @@ if __name__ == '__main__':
         os.makedirs('./releases/%s'%plugin)
     except:
         pass
-    zippath = './releases/%s/service.zfs-%s.zip'%(plugin,newversion)
+    zippath = './releases/%s/%s-%s.zip'%(plugin,plugin,newversion)
     print 'Creating: %s'%zippath
     zipf = zipfile.ZipFile(zippath, 'w')
     zipdir(sourcefolder, zipf)
