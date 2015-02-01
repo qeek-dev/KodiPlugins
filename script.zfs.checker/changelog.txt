@@ -1,3 +1,7 @@
+0.0.5
+-Added Possibility to disable Notifications
+-Debuged Error Message
+
 0.0.4
 -Created Errormessage in the Script Program if something went wrong
 

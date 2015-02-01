@@ -7,8 +7,41 @@ __addon__ = xbmcaddon.Addon()
 
 header = "ZFS Check"
 
-timeout = int(__addon__.getSetting("zfs.timeout"))*1000
-sleeptime = int(__addon__.getSetting("zfs.sleeptime"))
+def getSetting(setting_id):
+    """Workaround because __addon__.getSetting returns '' alltime"""
+
+    import xml.dom.minidom as dom
+    __addon__ = xbmcaddon.Addon()
+    __addonid__    = __addon__.getAddonInfo('id')
+    __configfilepath__ = xbmc.translatePath("special://profile/addon_data/" + __addonid__ + '/settings.xml')
+    print 'Opening Configfile: %s'%__configfilepath__
+    try:
+        root = dom.parse(__configfilepath__)
+        sets = root.getElementsByTagName("setting")
+        for setting in sets:
+            print setting.getAttribute("id"), setting.getAttribute("value")
+            if setting.getAttribute("id") == setting_id:
+                return setting.getAttribute("value")
+        return ""
+    except Exception,e:
+        print str(e)
+        return ""
+
+
+disabled = getSetting("zfs.disabled")
+
+if disabled == 'true':
+    exit(0)
+
+try:
+    timeout = int(getSetting("zfs.timeout"))*1000
+    sleeptime = int(getSetting("zfs.sleeptime"))
+except:
+    __addon__.setSetting(id="zfs.disabled",value='false')
+    __addon__.setSetting(id="zfs.timeout",value='5')
+    __addon__.setSetting(id="zfs.sleeptime",value='100')
+    timeout = 5*1000
+    sleeptime = 100
 
 
 def run():
