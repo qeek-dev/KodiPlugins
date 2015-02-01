@@ -1,3 +1,13 @@
+0.0.5
+-Fixed getSettings Bug
+-Fixed Encodings
+
+0.0.4
+-Bugfixes
+
+0.0.3
+-Bugfixes
+
 0.0.2
 - Fixed Bug: MVG returns 0 results at night, can't be used for error checking
 

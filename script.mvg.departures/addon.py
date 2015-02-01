@@ -1,33 +1,41 @@
-
 import re
 import urllib2
 import xbmc
 import xbmcaddon
 import xbmcgui
-import xml.dom.minidom as dom
+__addon__ = xbmcaddon.Addon()
 
 def log(info):
     print '[############] %s'%repr(info)
 
 log('Starting MVG Checker')
+log(__addon__.getSetting('station'))
+log(__addon__.getSetting('mintime'))
+log(__addon__.getSetting('maxtime'))
 
-__addon__ = xbmcaddon.Addon()
+station = __addon__.getSetting('station')
+mintime = __addon__.getSetting('mintime')
+maxtime = __addon__.getSetting('maxtime')
 
 
-def getSetting(setting_id):
-    """Workaround because __addon__.getSetting returns '' alltime"""
-    __addon__ = xbmcaddon.Addon()
-    __addonid__    = __addon__.getAddonInfo('id')
-    __configfilepath__ = xbmc.translatePath("special://profile/addon_data/" + __addonid__ + '/settings.xml')
-    try:
-        root = dom.parse(__configfilepath__)
-        sets = root.getElementsByTagName("setting")
-        for setting in sets:
-            if setting.getAttribute("id") == setting_id:
-                return setting.getAttribute("value")
-        return ""
-    except:
-        return ""
+
+
+#~
+#~ def getSetting(setting_id):
+    #~ import xml.dom.minidom as dom
+    #~ """Workaround because __addon__.getSetting returns '' alltime"""
+    #~ __addon__ = xbmcaddon.Addon()
+    #~ __addonid__    = __addon__.getAddonInfo('id')
+    #~ __configfilepath__ = xbmc.translatePath("special://profile/addon_data/" + __addonid__ + '/settings.xml')
+    #~ try:
+        #~ root = dom.parse(__configfilepath__)
+        #~ sets = root.getElementsByTagName("setting")
+        #~ for setting in sets:
+            #~ if setting.getAttribute("id") == setting_id:
+                #~ return setting.getAttribute("value")
+        #~ return ""
+    #~ except:
+        #~ return ""
 
 class MVG:
 
@@ -35,7 +43,7 @@ class MVG:
     Thanks to pc-coholic: <fpletz@phidev.org>"""
 
     def encode_station_name(self, stationname):
-        string = urllib2.quote(stationname.encode('latin1'))
+        string = urllib2.quote(stationname.decode('utf-8').encode('latin1'))
         return string
 
     def get_url(self, stationname):
@@ -87,14 +95,12 @@ def text_viewer(title, text):
     w.getControl(CONTENTS).setText(text)
 
 
-# Get Settings
-station = getSetting('station')
-mintime = getSetting('mintime')
-if mintime == '':
-    mintime = 1
-maxtime = getSetting('maxtime')
-if maxtime == '':
-    maxtime = 100
+#~ # Get Settings
+#~
+#~ if mintime == '':
+    #~ mintime = 1
+#~ if maxtime == '':
+    #~ maxtime = 100
 
 # Wrong Time Settings?
 if int(mintime) >= int(maxtime):
@@ -114,7 +120,7 @@ if station == '':
         kb.doModal()
         if (kb.isConfirmed()):
             # Station Confirmed
-            station = kb.getText().decode('utf-8')
+            station = kb.getText()#.decode('utf-8')
             log('Trying: %s'%station)
 
             data = mvg_obj.get_departures(station)
