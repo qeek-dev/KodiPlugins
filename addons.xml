@@ -1,6 +1,6 @@
 <?xml version="1.0" ?><addons>
 
-    <addon id="script.zfs.checker" name="ZFS Checker" provider-name="merlink" version="0.0.5">
+    <addon id="script.zfs.checker" name="ZFS Checker" provider-name="merlink" version="0.0.6">
         <requires>
             <import addon="xbmc.python" version="2.14.0"/>
         </requires>

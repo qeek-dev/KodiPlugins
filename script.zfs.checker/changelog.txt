@@ -1,3 +1,7 @@
+0.0.6
+-Debuged getSetting Problem
+-Added Logging
+
 0.0.5
 -Added Possibility to disable Notifications
 -Debuged Error Message
