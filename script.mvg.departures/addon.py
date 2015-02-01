@@ -17,26 +17,6 @@ station = __addon__.getSetting('station')
 mintime = __addon__.getSetting('mintime')
 maxtime = __addon__.getSetting('maxtime')
 
-
-
-
-#~
-#~ def getSetting(setting_id):
-    #~ import xml.dom.minidom as dom
-    #~ """Workaround because __addon__.getSetting returns '' alltime"""
-    #~ __addon__ = xbmcaddon.Addon()
-    #~ __addonid__    = __addon__.getAddonInfo('id')
-    #~ __configfilepath__ = xbmc.translatePath("special://profile/addon_data/" + __addonid__ + '/settings.xml')
-    #~ try:
-        #~ root = dom.parse(__configfilepath__)
-        #~ sets = root.getElementsByTagName("setting")
-        #~ for setting in sets:
-            #~ if setting.getAttribute("id") == setting_id:
-                #~ return setting.getAttribute("value")
-        #~ return ""
-    #~ except:
-        #~ return ""
-
 class MVG:
 
     """This Library gives MVG Departments fom any destination
@@ -94,13 +74,6 @@ def text_viewer(title, text):
     w.getControl(TITLEBAR).setLabel(title)
     w.getControl(CONTENTS).setText(text)
 
-
-#~ # Get Settings
-#~
-#~ if mintime == '':
-    #~ mintime = 1
-#~ if maxtime == '':
-    #~ maxtime = 100
 
 # Wrong Time Settings?
 if int(mintime) >= int(maxtime):
