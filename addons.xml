@@ -11,8 +11,8 @@
             <description lang="en">Checks the healths of zfs regularly</description>
             <license>GNU General Public License, v2</license>
             <language/>
-            <source>https://github.com/merlink01/KodiPlugins/tree/master/script.zfs.checker</source>
-            <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
+            <source>https://github.com/qeek-dev/KodiPlugins/tree/master/script.zfs.checker</source>
+            <datadir zip="true">https://github.com/qeek-dev/KodiPlugins/raw/master/releases</datadir>
         </extension>
     </addon>
 
@@ -27,8 +27,8 @@
             <description lang="en">Gets the list of departures from your MVG Station</description>
             <license>GNU General Public License, v2</license>
             <language/>
-            <source>https://github.com/merlink01/KodiPlugins/tree/master/script.mvg.departures</source>
-            <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
+            <source>https://github.com/qeek-dev/KodiPlugins/tree/master/script.mvg.departures</source>
+            <datadir zip="true">https://github.com/qeek-dev/KodiPlugins/raw/master/releases</datadir>
         </extension>
     </addon>
 
@@ -43,8 +43,8 @@
             <description lang="en">View the Logfile of Kodi</description>
             <license>GNU General Public License, v2</license>
             <language/>
-            <source>https://github.com/merlink01/KodiPlugins/tree/master/script.logviewer</source>
-            <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
+            <source>https://github.com/qeek-dev/KodiPlugins/tree/master/script.logviewer</source>
+            <datadir zip="true">https://github.com/qeek-dev/KodiPlugins/raw/master/releases</datadir>
         </extension>
     </addon>
 
@@ -56,8 +56,28 @@
             <description>Unofficial Addons from Merlink</description>
             <license>GNU General Public License, v2</license>
             <language/>
-            <source>https://github.com/merlink01/KodiPlugins/tree/master/repository.merlink.kodi-addons</source>
-            <datadir zip="true">https://github.com/merlink01/KodiPlugins/raw/master/releases</datadir>
+            <source>https://github.com/qeek-dev/KodiPlugins/tree/master/repository.merlink.kodi-addons</source>
+            <datadir zip="true">https://github.com/qeek-dev/KodiPlugins/raw/master/releases</datadir>
+        </extension>
+    </addon>
+
+    <addon id="script.module.youtube.dl" name="youtube-dl Control" version="16.623.0" provider-name="Rick Phillips (ruuk)">
+        <requires>
+            <import addon="xbmc.python" version="2.1.0" />
+            <import addon="script.module.addon.signals" version="0.0.1"/>
+        </requires>
+        <extension point="xbmc.python.script" library="control.py">
+            <provides>executable</provides>
+        </extension>
+        <extension point="xbmc.python.module" library="lib" />
+        <extension point="xbmc.addon.metadata">
+            <platform>all</platform>
+            <summary lang="en">Module providing access to youtube-dl video stream extraction</summary>
+            <description lang="en">Module providing access to youtube-dl video stream extraction for hundreds of sites. Version is based on youtube-dl date version: YY.MDD.V where V is the addon specific sub-version. Also provides downloading with the option for background downloading with a queue and queue manager.</description>
+            <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
+            <language/>
+            <source>https://github.com/qeek-dev/KodiPlugins/tree/master/script.module.youtube.dl</source>
+            <datadir zip="true">https://github.com/qeek-dev/KodiPlugins/raw/master/releases</datadir>
         </extension>
     </addon>
 </addons>
