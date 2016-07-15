@@ -55,6 +55,7 @@ def _selectVideoQuality(r, quality=None):
         if quality is None:
             quality = util.getSetting('video_quality', 1)
         disable_dash = util.getSetting('disable_dash_video', True)
+        disable_webm = util.getSetting('disable_webm_video', True)
 
         entries = r.get('entries') or [r]
 
@@ -89,6 +90,8 @@ def _selectVideoQuality(r, quality=None):
                 if 'height' not in fdata:
                     continue
                 if disable_dash and 'dash' in fdata.get('format_note', '').lower():
+                    continue
+                if disable_webm and 'webm' in fdata.get('ext', '').lower():
                     continue
                 h = fdata['height']
                 p = fdata.get('preference', 1)
