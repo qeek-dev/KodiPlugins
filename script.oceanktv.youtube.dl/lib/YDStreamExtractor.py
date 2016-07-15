@@ -55,7 +55,7 @@ def _selectVideoQuality(r, quality=None):
         if quality is None:
             quality = util.getSetting('video_quality', 1)
         disable_dash = util.getSetting('disable_dash_video', True)
-        disable_webm = util.getSetting('disable_webm_video', True)
+        disable_webm = True  # default as disable webm
 
         entries = r.get('entries') or [r]
 
