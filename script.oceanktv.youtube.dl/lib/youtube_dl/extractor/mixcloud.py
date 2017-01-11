@@ -22,7 +22,7 @@ from ..utils import (
 
 
 class MixcloudIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([^/]+)/(?!stream|uploads|favorites|listens|playlists)([^/]+)'
+    _VALID_URL = r'https?://(?:(?:www|beta|m)\.)?mixcloud\.com/([^/]+)/(?!stream|uploads|favorites|listens|playlists)([^/]+)'
     IE_NAME = 'mixcloud'
 
     _TESTS = [{
@@ -34,7 +34,7 @@ class MixcloudIE(InfoExtractor):
             'description': 'After quite a long silence from myself, finally another Drum\'n\'Bass mix with my favourite current dance floor bangers.',
             'uploader': 'Daniel Holbach',
             'uploader_id': 'dholbach',
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
             'view_count': int,
             'like_count': int,
         },
@@ -51,6 +51,9 @@ class MixcloudIE(InfoExtractor):
             'view_count': int,
             'like_count': int,
         },
+    }, {
+        'url': 'https://beta.mixcloud.com/RedLightRadio/nosedrip-15-red-light-radio-01-18-2016/',
+        'only_matching': True,
     }]
 
     # See https://www.mixcloud.com/media/js2/www_js_2.9e23256562c080482435196ca3975ab5.js
@@ -102,11 +105,11 @@ class MixcloudIE(InfoExtractor):
         description = self._og_search_description(webpage)
         like_count = parse_count(self._search_regex(
             r'\bbutton-favorite[^>]+>.*?<span[^>]+class=["\']toggle-number[^>]+>\s*([^<]+)',
-            webpage, 'like count', fatal=False))
+            webpage, 'like count', default=None))
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
              r'/listeners/?">([0-9,.]+)</a>'],
-            webpage, 'play count', fatal=False))
+            webpage, 'play count', default=None))
 
         return {
             'id': track_id,

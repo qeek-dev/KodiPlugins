@@ -2,9 +2,13 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
+    int_or_none,
     parse_iso8601,
+    try_get,
+    update_url_query,
 )
 
 
@@ -29,7 +33,7 @@ class TV4IE(InfoExtractor):
                 'id': '2491650',
                 'ext': 'mp4',
                 'title': 'Kalla Fakta 5 (english subtitles)',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'timestamp': int,
                 'upload_date': '20131125',
             },
@@ -41,7 +45,7 @@ class TV4IE(InfoExtractor):
                 'id': '3054113',
                 'ext': 'mp4',
                 'title': 'Så här jobbar ficktjuvarna - se avslöjande bilder',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'description': 'Unika bilder avslöjar hur turisternas fickor vittjas mitt på Stockholms central. Två experter på ficktjuvarna avslöjar knepen du ska se upp för.',
                 'timestamp': int,
                 'upload_date': '20150130',
@@ -65,36 +69,47 @@ class TV4IE(InfoExtractor):
         video_id = self._match_id(url)
 
         info = self._download_json(
-            'http://www.tv4play.se/player/assets/%s.json' % video_id, video_id, 'Downloading video info JSON')
+            'http://www.tv4play.se/player/assets/%s.json' % video_id,
+            video_id, 'Downloading video info JSON')
 
         # If is_geo_restricted is true, it doesn't necessarily mean we can't download it
-        if info['is_geo_restricted']:
+        if info.get('is_geo_restricted'):
             self.report_warning('This content might not be available in your country due to licensing restrictions.')
-        if info['requires_subscription']:
+        if info.get('requires_subscription'):
             raise ExtractorError('This content requires subscription.', expected=True)
 
-        sources_data = self._download_json(
-            'https://prima.tv4play.se/api/web/asset/%s/play.json?protocol=http&videoFormat=MP4' % video_id, video_id, 'Downloading sources JSON')
-        sources = sources_data['playback']
+        title = info['title']
 
         formats = []
-        for item in sources.get('items', {}).get('item', []):
-            ext, bitrate = item['mediaFormat'], item['bitrate']
-            formats.append({
-                'format_id': '%s_%s' % (ext, bitrate),
-                'tbr': bitrate,
-                'ext': ext,
-                'url': item['url'],
-            })
+        # http formats are linked with unresolvable host
+        for kind in ('hls', ''):
+            data = self._download_json(
+                'https://prima.tv4play.se/api/web/asset/%s/play.json' % video_id,
+                video_id, 'Downloading sources JSON', query={
+                    'protocol': kind,
+                    'videoFormat': 'MP4+WEBVTTS+WEBVTT',
+                })
+            item = try_get(data, lambda x: x['playback']['items']['item'], dict)
+            manifest_url = item.get('url')
+            if not isinstance(manifest_url, compat_str):
+                continue
+            if kind == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    manifest_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id=kind, fatal=False))
+            else:
+                formats.extend(self._extract_f4m_formats(
+                    update_url_query(manifest_url, {'hdcore': '3.8.0'}),
+                    video_id, f4m_id='hds', fatal=False))
         self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': info['title'],
+            'title': title,
             'formats': formats,
             'description': info.get('description'),
             'timestamp': parse_iso8601(info.get('broadcast_date_time')),
-            'duration': info.get('duration'),
+            'duration': int_or_none(info.get('duration')),
             'thumbnail': info.get('image'),
-            'is_live': sources.get('live'),
+            'is_live': info.get('is_live') is True,
         }

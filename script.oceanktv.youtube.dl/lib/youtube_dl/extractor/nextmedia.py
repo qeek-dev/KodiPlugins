@@ -7,7 +7,7 @@ from ..utils import parse_iso8601
 
 class NextMediaIE(InfoExtractor):
     IE_DESC = '蘋果日報'
-    _VALID_URL = r'https?://hk.apple.nextmedia.com/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)'
+    _VALID_URL = r'https?://hk\.apple\.nextmedia\.com/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://hk.apple.nextmedia.com/realtime/news/20141108/53109199',
         'md5': 'dff9fad7009311c421176d1ac90bfe4f',
@@ -15,7 +15,7 @@ class NextMediaIE(InfoExtractor):
             'id': '53109199',
             'ext': 'mp4',
             'title': '【佔領金鐘】50外國領事議員撐場 讚學生勇敢香港有希望',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'md5:28222b9912b6665a21011b034c70fcc7',
             'timestamp': 1415456273,
             'upload_date': '20141108',
@@ -68,7 +68,7 @@ class NextMediaIE(InfoExtractor):
 
 class NextMediaActionNewsIE(NextMediaIE):
     IE_DESC = '蘋果日報 - 動新聞'
-    _VALID_URL = r'https?://hk.dv.nextmedia.com/actionnews/[^/]+/(?P<date>\d+)/(?P<id>\d+)/\d+'
+    _VALID_URL = r'https?://hk\.dv\.nextmedia\.com/actionnews/[^/]+/(?P<date>\d+)/(?P<id>\d+)/\d+'
     _TESTS = [{
         'url': 'http://hk.dv.nextmedia.com/actionnews/hit/20150121/19009428/20061460',
         'md5': '05fce8ffeed7a5e00665d4b7cf0f9201',
@@ -76,7 +76,7 @@ class NextMediaActionNewsIE(NextMediaIE):
             'id': '19009428',
             'ext': 'mp4',
             'title': '【壹週刊】細10年男友偷食　50歲邵美琪再失戀',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'md5:cd802fad1f40fd9ea178c1e2af02d659',
             'timestamp': 1421791200,
             'upload_date': '20150120',
@@ -93,7 +93,7 @@ class NextMediaActionNewsIE(NextMediaIE):
 
 class AppleDailyIE(NextMediaIE):
     IE_DESC = '臺灣蘋果日報'
-    _VALID_URL = r'https?://(www|ent).appledaily.com.tw/(?:animation|appledaily|enews|realtimenews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
+    _VALID_URL = r'https?://(www|ent)\.appledaily\.com\.tw/(?:animation|appledaily|enews|realtimenews|actionnews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
     _TESTS = [{
         'url': 'http://ent.appledaily.com.tw/enews/article/entertainment/20150128/36354694',
         'md5': 'a843ab23d150977cc55ef94f1e2c1e4d',
@@ -101,7 +101,7 @@ class AppleDailyIE(NextMediaIE):
             'id': '36354694',
             'ext': 'mp4',
             'title': '周亭羽走過摩鐵陰霾2男陪吃 九把刀孤寒看醫生',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'md5:2acd430e59956dc47cd7f67cb3c003f4',
             'upload_date': '20150128',
         }
@@ -112,7 +112,7 @@ class AppleDailyIE(NextMediaIE):
             'id': '550549',
             'ext': 'mp4',
             'title': '不滿被踩腳　山東兩大媽一路打下車',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'md5:175b4260c1d7c085993474217e4ab1b4',
             'upload_date': '20150128',
         }
@@ -123,7 +123,7 @@ class AppleDailyIE(NextMediaIE):
             'id': '5003671',
             'ext': 'mp4',
             'title': '20正妹熱舞　《刀龍傳說Online》火辣上市',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'md5:23c0aac567dc08c9c16a3161a2c2e3cd',
             'upload_date': '20150128',
         },
@@ -150,10 +150,13 @@ class AppleDailyIE(NextMediaIE):
             'id': '35770334',
             'ext': 'mp4',
             'title': '咖啡占卜測 XU裝熟指數',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'md5:7b859991a6a4fedbdf3dd3b66545c748',
             'upload_date': '20140417',
         },
+    }, {
+        'url': 'http://www.appledaily.com.tw/actionnews/appledaily/7/20161003/960588/',
+        'only_matching': True,
     }]
 
     _URL_PATTERN = r'\{url: \'(.+)\'\}'
