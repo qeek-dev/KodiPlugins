@@ -34,18 +34,19 @@ from ..utils import (
     int_or_none,
     mimetype2ext,
     orderedSet,
+    parse_codecs,
     parse_duration,
     remove_quotes,
     remove_start,
     sanitized_Request,
     smuggle_url,
     str_to_int,
+    try_get,
     unescapeHTML,
     unified_strdate,
     unsmuggle_url,
     uppercase_escape,
     urlencode_postdata,
-    ISO3166Utils,
 )
 
 
@@ -57,6 +58,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
+
+    _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL)[0-9A-Za-z-_]{10,}'
 
     def _set_language(self):
         self._set_cookie(
@@ -264,9 +267,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          )
                      )?                                                       # all until now is optional -> you can pass the naked ID
                      ([0-9A-Za-z_-]{11})                                      # here is it! the YouTube video ID
-                     (?!.*?\blist=)                                            # combined list/video URLs are handled by the playlist IE
+                     (?!.*?\blist=
+                        (?:
+                            %(playlist_id)s|                                  # combined list/video URLs are handled by the playlist IE
+                            WL                                                # WL are handled by the watch later IE
+                        )
+                     )
                      (?(1).+)?                                                # if we found the ID, everything can follow
-                     $"""
+                     $""" % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
     _formats = {
         '5': {'ext': 'flv', 'width': 400, 'height': 240, 'acodec': 'mp3', 'abr': 64, 'vcodec': 'h263'},
@@ -309,63 +317,67 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '151': {'ext': 'mp4', 'height': 72, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 24, 'vcodec': 'h264', 'preference': -10},
 
         # DASH mp4 video
-        '133': {'ext': 'mp4', 'height': 240, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '134': {'ext': 'mp4', 'height': 360, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '135': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '136': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '137': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},  # Height can vary (https://github.com/rg3/youtube-dl/issues/4559)
-        '160': {'ext': 'mp4', 'height': 144, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '212': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '264': {'ext': 'mp4', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '298': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'h264', 'fps': 60, 'preference': -40},
-        '299': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'h264', 'fps': 60, 'preference': -40},
-        '266': {'ext': 'mp4', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
+        '133': {'ext': 'mp4', 'height': 240, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '134': {'ext': 'mp4', 'height': 360, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '135': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '136': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '137': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'vcodec': 'h264'},  # Height can vary (https://github.com/rg3/youtube-dl/issues/4559)
+        '160': {'ext': 'mp4', 'height': 144, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '212': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '264': {'ext': 'mp4', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '298': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'h264', 'fps': 60},
+        '299': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'h264', 'fps': 60},
+        '266': {'ext': 'mp4', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'h264'},
 
         # Dash mp4 audio
-        '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 48, 'preference': -50, 'container': 'm4a_dash'},
-        '140': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 128, 'preference': -50, 'container': 'm4a_dash'},
-        '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 256, 'preference': -50, 'container': 'm4a_dash'},
-        '256': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'preference': -50, 'container': 'm4a_dash'},
-        '258': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'preference': -50, 'container': 'm4a_dash'},
+        '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 48, 'container': 'm4a_dash'},
+        '140': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 128, 'container': 'm4a_dash'},
+        '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 256, 'container': 'm4a_dash'},
+        '256': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'container': 'm4a_dash'},
+        '258': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'container': 'm4a_dash'},
+        '325': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'dtse', 'container': 'm4a_dash'},
+        '328': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'ec-3', 'container': 'm4a_dash'},
 
         # Dash webm
-        '167': {'ext': 'webm', 'height': 360, 'width': 640, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '168': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '169': {'ext': 'webm', 'height': 720, 'width': 1280, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '170': {'ext': 'webm', 'height': 1080, 'width': 1920, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '218': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '219': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '278': {'ext': 'webm', 'height': 144, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp9', 'preference': -40},
-        '242': {'ext': 'webm', 'height': 240, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '243': {'ext': 'webm', 'height': 360, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '244': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '245': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '246': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '247': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '248': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '271': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
+        '167': {'ext': 'webm', 'height': 360, 'width': 640, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '168': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '169': {'ext': 'webm', 'height': 720, 'width': 1280, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '170': {'ext': 'webm', 'height': 1080, 'width': 1920, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '218': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '219': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '278': {'ext': 'webm', 'height': 144, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp9'},
+        '242': {'ext': 'webm', 'height': 240, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '243': {'ext': 'webm', 'height': 360, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '244': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '245': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '246': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '247': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '248': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '271': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'vp9'},
         # itag 272 videos are either 3840x2160 (e.g. RtoitU2A-3E) or 7680x4320 (sLprVF6d7Ug)
-        '272': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '302': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
-        '303': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
-        '308': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
-        '313': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '315': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
+        '272': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '302': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60},
+        '303': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60},
+        '308': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60},
+        '313': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '315': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60},
 
         # Dash webm audio
-        '171': {'ext': 'webm', 'acodec': 'vorbis', 'format_note': 'DASH audio', 'abr': 128, 'preference': -50},
-        '172': {'ext': 'webm', 'acodec': 'vorbis', 'format_note': 'DASH audio', 'abr': 256, 'preference': -50},
+        '171': {'ext': 'webm', 'acodec': 'vorbis', 'format_note': 'DASH audio', 'abr': 128},
+        '172': {'ext': 'webm', 'acodec': 'vorbis', 'format_note': 'DASH audio', 'abr': 256},
 
         # Dash webm audio with opus inside
-        '249': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 50, 'preference': -50},
-        '250': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 70, 'preference': -50},
-        '251': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 160, 'preference': -50},
+        '249': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 50},
+        '250': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 70},
+        '251': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 160},
 
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},
     }
     _SUBTITLE_FORMATS = ('ttml', 'vtt')
+
+    _GEO_BYPASS = False
 
     IE_NAME = 'youtube'
     _TESTS = [
@@ -383,6 +395,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
+                'duration': 10,
                 'like_count': int,
                 'dislike_count': int,
                 'start_time': 1,
@@ -402,6 +415,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'tags': ['Icona Pop i love it', 'sweden', 'pop music', 'big beat records', 'big beat', 'charli',
                          'xcx', 'charli xcx', 'girls', 'hbo', 'i love it', "i don't care", 'icona', 'pop',
                          'iconic ep', 'iconic', 'love', 'it'],
+                'duration': 180,
                 'uploader': 'Icona Pop',
                 'uploader_id': 'IconaPop',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/IconaPop',
@@ -419,6 +433,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': 'Justin Timberlake - Tunnel Vision (Explicit)',
                 'alt_title': 'Tunnel Vision',
                 'description': 'md5:64249768eec3bc4276236606ea996373',
+                'duration': 419,
                 'uploader': 'justintimberlakeVEVO',
                 'uploader_id': 'justintimberlakeVEVO',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/justintimberlakeVEVO',
@@ -458,6 +473,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
+                'duration': 10,
                 'like_count': int,
                 'dislike_count': int,
             },
@@ -493,6 +509,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'm4a',
                 'title': 'Afrojack, Spree Wilson - The Spark ft. Spree Wilson',
                 'description': 'md5:12e7067fa6735a77bdcbb58cb1187d2d',
+                'duration': 244,
                 'uploader': 'AfrojackVEVO',
                 'uploader_id': 'AfrojackVEVO',
                 'upload_date': '20131011',
@@ -512,6 +529,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': 'Taylor Swift - Shake It Off',
                 'alt_title': 'Shake It Off',
                 'description': 'md5:95f66187cd7c8b2c13eb78e1223b63c3',
+                'duration': 242,
                 'uploader': 'TaylorSwiftVEVO',
                 'uploader_id': 'TaylorSwiftVEVO',
                 'upload_date': '20140818',
@@ -529,6 +547,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': 'T4XJQO3qol8',
                 'ext': 'mp4',
+                'duration': 219,
                 'upload_date': '20100909',
                 'uploader': 'The Amazing Atheist',
                 'uploader_id': 'TheAmazingAtheist',
@@ -546,6 +565,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'The Witcher 3: Wild Hunt - The Sword Of Destiny Trailer',
                 'description': r're:(?s).{100,}About the Game\n.*?The Witcher 3: Wild Hunt.{100,}',
+                'duration': 142,
                 'uploader': 'The Witcher',
                 'uploader_id': 'WitcherGame',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/WitcherGame',
@@ -562,6 +582,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Dedication To My Ex (Miss That) (Lyric Video)',
                 'description': 'md5:33765bb339e1b47e7e72b5490139bb41',
+                'duration': 247,
                 'uploader': 'LloydVEVO',
                 'uploader_id': 'LloydVEVO',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/LloydVEVO',
@@ -576,6 +597,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': '__2ABJjxzNo',
                 'ext': 'mp4',
+                'duration': 266,
                 'upload_date': '20100430',
                 'uploader_id': 'deadmau5',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/deadmau5',
@@ -596,6 +618,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': 'lqQg6PlCWgI',
                 'ext': 'mp4',
+                'duration': 6085,
                 'upload_date': '20150827',
                 'uploader_id': 'olympic',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/olympic',
@@ -615,6 +638,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': '_b-2C3KPAM0',
                 'ext': 'mp4',
                 'stretched_ratio': 16 / 9.,
+                'duration': 85,
                 'upload_date': '20110310',
                 'uploader_id': 'AllenMeow',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/AllenMeow',
@@ -649,6 +673,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'md5:7b81415841e02ecd4313668cde88737a',
                 'description': 'md5:116377fd2963b81ec4ce64b542173306',
+                'duration': 220,
                 'upload_date': '20150625',
                 'uploader_id': 'dorappi2000',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/dorappi2000',
@@ -691,6 +716,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'ext': 'mp4',
                     'title': 'teamPGP: Rocket League Noob Stream (Main Camera)',
                     'description': 'md5:dc7872fb300e143831327f1bae3af010',
+                    'duration': 7335,
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
@@ -703,6 +729,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'ext': 'mp4',
                     'title': 'teamPGP: Rocket League Noob Stream (kreestuh)',
                     'description': 'md5:dc7872fb300e143831327f1bae3af010',
+                    'duration': 7337,
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
@@ -715,6 +742,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'ext': 'mp4',
                     'title': 'teamPGP: Rocket League Noob Stream (grizzle)',
                     'description': 'md5:dc7872fb300e143831327f1bae3af010',
+                    'duration': 7337,
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
@@ -727,6 +755,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'ext': 'mp4',
                     'title': 'teamPGP: Rocket League Noob Stream (zim)',
                     'description': 'md5:dc7872fb300e143831327f1bae3af010',
+                    'duration': 7334,
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
@@ -768,6 +797,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': '{dark walk}; Loki/AC/Dishonored; collab w/Elflover21',
                 'alt_title': 'Dark Walk',
                 'description': 'md5:8085699c11dc3f597ce0410b0dcbb34a',
+                'duration': 133,
                 'upload_date': '20151119',
                 'uploader_id': 'IronSoulElf',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/IronSoulElf',
@@ -809,10 +839,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'md5:e41008789470fc2533a3252216f1c1d1',
                 'description': 'md5:a677553cf0840649b731a3024aeff4cc',
+                'duration': 721,
                 'upload_date': '20150127',
                 'uploader_id': 'BerkmanCenter',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/BerkmanCenter',
-                'uploader': 'BerkmanCenter',
+                'uploader': 'The Berkman Klein Center for Internet & Society',
                 'license': 'Creative Commons Attribution license (reuse allowed)',
             },
             'params': {
@@ -827,6 +858,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Democratic Socialism and Foreign Policy | Bernie Sanders',
                 'description': 'md5:dda0d780d5a6e120758d1711d062a867',
+                'duration': 4060,
                 'upload_date': '20151119',
                 'uploader': 'Bernie 2016',
                 'uploader_id': 'UCH1dpzjCEiGAt8CXkryhkZg',
@@ -865,10 +897,44 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
+            # YouTube Red video with episode data
+            'url': 'https://www.youtube.com/watch?v=iqKdEhx-dD4',
+            'info_dict': {
+                'id': 'iqKdEhx-dD4',
+                'ext': 'mp4',
+                'title': 'Isolation - Mind Field (Ep 1)',
+                'description': 'md5:8013b7ddea787342608f63a13ddc9492',
+                'duration': 2085,
+                'upload_date': '20170118',
+                'uploader': 'Vsauce',
+                'uploader_id': 'Vsauce',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/Vsauce',
+                'license': 'Standard YouTube License',
+                'series': 'Mind Field',
+                'season_number': 1,
+                'episode_number': 1,
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': [
+                'Skipping DASH manifest',
+            ],
+        },
+        {
             # itag 212
             'url': '1t24XAntNCY',
             'only_matching': True,
-        }
+        },
+        {
+            # geo restricted to JP
+            'url': 'sJL6WA-aGkQ',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://www.youtube.com/watch?v=MuAGGZNfUkU&list=RDMM',
+            'only_matching': True,
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -897,7 +963,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_signature_function(self, video_id, player_url, example_sig):
         id_m = re.match(
-            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|/base)?\.(?P<ext>[a-z]+)$',
+            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
             player_url)
         if not id_m:
             raise ExtractorError('Cannot identify player %r' % player_url)
@@ -1187,21 +1253,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = mobj.group(2)
         return video_id
 
-    def _extract_from_m3u8(self, manifest_url, video_id):
-        url_map = {}
-
-        def _get_urls(_manifest):
-            lines = _manifest.split('\n')
-            urls = filter(lambda l: l and not l.startswith('#'),
-                          lines)
-            return urls
-        manifest = self._download_webpage(manifest_url, video_id, 'Downloading formats manifest')
-        formats_urls = _get_urls(manifest)
-        for format_url in formats_urls:
-            itag = self._search_regex(r'itag/(\d+?)/', format_url, 'itag')
-            url_map[itag] = format_url
-        return url_map
-
     def _extract_annotations(self, video_id):
         url = 'https://www.youtube.com/annotations_invideo?features=1&legacy=1&video_id=%s' % video_id
         return self._download_webpage(url, video_id, note='Searching for annotations.', errnote='Unable to download video annotations.')
@@ -1327,11 +1378,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if 'token' not in video_info:
             if 'reason' in video_info:
                 if 'The uploader has not made this video available in your country.' in video_info['reason']:
-                    regions_allowed = self._html_search_meta('regionsAllowed', video_webpage, default=None)
-                    if regions_allowed:
-                        raise ExtractorError('YouTube said: This video is available in %s only' % (
-                            ', '.join(map(ISO3166Utils.short2full, regions_allowed.split(',')))),
-                            expected=True)
+                    regions_allowed = self._html_search_meta(
+                        'regionsAllowed', video_webpage, default=None)
+                    countries = regions_allowed.split(',') if regions_allowed else None
+                    self.raise_geo_restricted(
+                        msg=video_info['reason'][0], countries=countries)
                 raise ExtractorError(
                     'YouTube said: %s' % video_info['reason'][0],
                     expected=True, video_id=video_id)
@@ -1399,7 +1450,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
-            raise ExtractorError('"rental" videos not supported')
+            raise ExtractorError('"rental" videos not supported. See https://github.com/rg3/youtube-dl/issues/359 for more information.', expected=True)
 
         # Start extracting information
         self.report_information_extraction(video_id)
@@ -1458,6 +1509,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             video_alt_title = video_creator = None
 
+        m_episode = re.search(
+            r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
+            video_webpage)
+        if m_episode:
+            series = m_episode.group('series')
+            season_number = int(m_episode.group('season'))
+            episode_number = int(m_episode.group('episode'))
+        else:
+            series = season_number = episode_number = None
+
         m_cat_container = self._search_regex(
             r'(?s)<h4[^>]*>\s*Category\s*</h4>\s*<ul[^>]*>(.*?)</ul>',
             video_webpage, 'categories', default=None)
@@ -1486,29 +1547,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_subtitles = self.extract_subtitles(video_id, video_webpage)
         automatic_captions = self.extract_automatic_captions(video_id, video_webpage)
 
-        if 'length_seconds' not in video_info:
-            self._downloader.report_warning('unable to extract video duration')
-            video_duration = None
-        else:
-            video_duration = int(compat_urllib_parse_unquote_plus(video_info['length_seconds'][0]))
+        video_duration = try_get(
+            video_info, lambda x: int_or_none(x['length_seconds'][0]))
+        if not video_duration:
+            video_duration = parse_duration(self._html_search_meta(
+                'duration', video_webpage, 'video duration'))
 
         # annotations
         video_annotations = None
         if self._downloader.params.get('writeannotations', False):
             video_annotations = self._extract_annotations(video_id)
-
-        def _map_to_format_list(urlmap):
-            formats = []
-            for itag, video_real_url in urlmap.items():
-                dct = {
-                    'format_id': itag,
-                    'url': video_real_url,
-                    'player_url': player_url,
-                }
-                if itag in self._formats:
-                    dct.update(self._formats[itag])
-                formats.append(dct)
-            return formats
 
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
             self.report_rtmp_download()
@@ -1581,7 +1629,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 player_desc = 'flash player %s' % player_version
                             else:
                                 player_version = self._search_regex(
-                                    [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js', r'(?:www|player)-([^/]+)/base\.js'],
+                                    [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
+                                     r'(?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\.js'],
                                     player_url,
                                     'html5 player', fatal=False)
                                 player_desc = 'html5 player %s' % player_version
@@ -1638,23 +1687,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                     codecs = mobj.group('val')
                                     break
                             if codecs:
-                                codecs = codecs.split(',')
-                                if len(codecs) == 2:
-                                    acodec, vcodec = codecs[1], codecs[0]
-                                else:
-                                    acodec, vcodec = (codecs[0], 'none') if kind == 'audio' else ('none', codecs[0])
-                                dct.update({
-                                    'acodec': acodec,
-                                    'vcodec': vcodec,
-                                })
+                                dct.update(parse_codecs(codecs))
                 formats.append(dct)
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]
-            url_map = self._extract_from_m3u8(manifest_url, video_id)
-            formats = _map_to_format_list(url_map)
-            # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
-            for a_format in formats:
+            formats = []
+            m3u8_formats = self._extract_m3u8_formats(
+                manifest_url, video_id, 'mp4', fatal=False)
+            for a_format in m3u8_formats:
+                itag = self._search_regex(
+                    r'/itag/(\d+)/', a_format['url'], 'itag', default=None)
+                if itag:
+                    a_format['format_id'] = itag
+                    if itag in self._formats:
+                        dct = self._formats[itag].copy()
+                        dct.update(a_format)
+                        a_format = dct
+                a_format['player_url'] = player_url
+                # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
                 a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
+                formats.append(a_format)
         else:
             unavailable_message = self._html_search_regex(
                 r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
@@ -1747,6 +1799,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'is_live': is_live,
             'start_time': start_time,
             'end_time': end_time,
+            'series': series,
+            'season_number': season_number,
+            'episode_number': episode_number,
         }
 
 
@@ -1791,21 +1846,21 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                         (?:
                             youtube\.com/
                             (?:
-                               (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/videoseries)
+                               (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/(?:videoseries|[0-9A-Za-z_-]{11}))
                                \? (?:.*?[&;])*? (?:p|a|list)=
                             |  p/
                             )|
                             youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
                         )
                         (
-                            (?:PL|LL|EC|UU|FL|RD|UL)?[0-9A-Za-z-_]{10,}
+                            (?:PL|LL|EC|UU|FL|RD|UL|TL)?[0-9A-Za-z-_]{10,}
                             # Top tracks, they can also include dots
                             |(?:MC)[\w\.]*
                         )
                         .*
                      |
-                        ((?:PL|LL|EC|UU|FL|RD|UL)[0-9A-Za-z-_]{10,})
-                     )"""
+                        (%(playlist_id)s)
+                     )""" % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&disable_polymer=true'
     _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)(?:[^>]+>(?P<title>[^<]+))?'
     IE_NAME = 'youtube:playlist'
@@ -1823,6 +1878,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'title': 'YDL_Empty_List',
         },
         'playlist_count': 0,
+        'skip': 'This playlist is private',
     }, {
         'note': 'Playlist with deleted videos (#651). As a bonus, the video #51 is also twice in this list.',
         'url': 'https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC',
@@ -1854,6 +1910,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'id': 'PLtPgu7CB4gbY9oDN3drwC3cMbJggS7dKl',
         },
         'playlist_count': 2,
+        'skip': 'This playlist is private',
     }, {
         'note': 'embedded',
         'url': 'https://www.youtube.com/embed/videoseries?list=PL6IaIsEjSbf96XFRuNccS_RuEXwNdsoEu',
@@ -1861,6 +1918,13 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'info_dict': {
             'title': 'JODA15',
             'id': 'PL6IaIsEjSbf96XFRuNccS_RuEXwNdsoEu',
+        }
+    }, {
+        'url': 'http://www.youtube.com/embed/_xDOZElKyNU?list=PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
+        'playlist_mincount': 485,
+        'info_dict': {
+            'title': '2017 華語最新單曲 (2/24更新)',
+            'id': 'PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
         }
     }, {
         'note': 'Embedded SWF player',
@@ -1924,6 +1988,9 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     }, {
         'url': 'https://youtu.be/uWyaPkt-VOI?list=PL9D9FC436B881BA21',
         'only_matching': True,
+    }, {
+        'url': 'TLGGrESM50VT6acwMjAyMjAxNw',
+        'only_matching': True,
     }]
 
     def _real_initialize(self):
@@ -1965,14 +2032,18 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         url = self._TEMPLATE_URL % playlist_id
         page = self._download_webpage(url, playlist_id)
 
-        for match in re.findall(r'<div class="yt-alert-message">([^<]+)</div>', page):
+        # the yt-alert-message now has tabindex attribute (see https://github.com/rg3/youtube-dl/issues/11604)
+        for match in re.findall(r'<div class="yt-alert-message"[^>]*>([^<]+)</div>', page):
             match = match.strip()
             # Check if the playlist exists or is private
-            if re.match(r'[^<]*(The|This) playlist (does not exist|is private)[^<]*', match):
-                raise ExtractorError(
-                    'The playlist doesn\'t exist or is private, use --username or '
-                    '--netrc to access it.',
-                    expected=True)
+            mobj = re.match(r'[^<]*(?:The|This) playlist (?P<reason>does not exist|is private)[^<]*', match)
+            if mobj:
+                reason = mobj.group('reason')
+                message = 'This playlist %s' % reason
+                if 'private' in reason:
+                    message += ', use --username or --netrc to access it'
+                message += '.'
+                raise ExtractorError(message, expected=True)
             elif re.match(r'[^<]*Invalid parameters[^<]*', match):
                 raise ExtractorError(
                     'Invalid parameters. Maybe URL is incorrect.',
@@ -2003,7 +2074,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         # Check if it's a video-specific URL
         query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         video_id = query_dict.get('v', [None])[0] or self._search_regex(
-            r'(?:^|//)youtu\.be/([0-9A-Za-z_-]{11})', url,
+            r'(?:(?:^|//)youtu\.be/|youtube\.com/embed/(?!videoseries))([0-9A-Za-z_-]{11})', url,
             'video id', default=None)
         if video_id:
             if self._downloader.params.get('noplaylist'):
@@ -2163,7 +2234,7 @@ class YoutubeUserIE(YoutubeChannelIE):
         'url': 'https://www.youtube.com/gametrailers',
         'only_matching': True,
     }, {
-        # This channel is not available.
+        # This channel is not available, geo restricted to JP
         'url': 'https://www.youtube.com/user/kananishinoSMEJ/videos',
         'only_matching': True,
     }]
@@ -2280,18 +2351,18 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
         videos = []
         limit = n
 
+        url_query = {
+            'search_query': query.encode('utf-8'),
+        }
+        url_query.update(self._EXTRA_QUERY_ARGS)
+        result_url = 'https://www.youtube.com/results?' + compat_urllib_parse_urlencode(url_query)
+
         for pagenum in itertools.count(1):
-            url_query = {
-                'search_query': query.encode('utf-8'),
-                'page': pagenum,
-                'spf': 'navigate',
-            }
-            url_query.update(self._EXTRA_QUERY_ARGS)
-            result_url = 'https://www.youtube.com/results?' + compat_urllib_parse_urlencode(url_query)
             data = self._download_json(
                 result_url, video_id='query "%s"' % query,
                 note='Downloading page %s' % pagenum,
-                errnote='Unable to download API page')
+                errnote='Unable to download API page',
+                query={'spf': 'navigate'})
             html_content = data[1]['body']['content']
 
             if 'class="search-message' in html_content:
@@ -2303,6 +2374,12 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
             videos += new_videos
             if not new_videos or len(videos) > limit:
                 break
+            next_link = self._html_search_regex(
+                r'href="(/results\?[^"]*\bsp=[^"]+)"[^>]*>\s*<span[^>]+class="[^"]*\byt-uix-button-content\b[^"]*"[^>]*>Next',
+                html_content, 'next link', default=None)
+            if next_link is None:
+                break
+            result_url = compat_urlparse.urljoin('https://www.youtube.com/', next_link)
 
         if len(videos) > n:
             videos = videos[:n]
