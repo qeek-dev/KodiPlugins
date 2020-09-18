@@ -13,7 +13,7 @@
         </extension>
     </addon>
 
-    <addon id="script.oceanktv.youtube.dl" name="oceanktv youtube-dl" version="2020.0918.0" provider-name="qnap">
+    <addon id="script.oceanktv.youtube.dl" name="oceanktv youtube-dl" version="2020.0919.0" provider-name="qnap">
         <requires>
             <import addon="xbmc.python" version="2.1.0" />
             <import addon="script.module.addon.signals" version="0.0.1"/>
